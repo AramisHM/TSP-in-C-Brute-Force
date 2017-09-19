@@ -92,7 +92,6 @@ char **get_city_names(char *file_to_parse, int city_count) {
 	char *cities = strtok(raw_file,"\n"); /*first line*/
 	char *city_name = strtok(cities,"\",");
 	while(city_name) {
-		
 		if (city_name &&
 			city_name[0] != ',' &&
 			city_name[0] != '\r') {
@@ -234,6 +233,7 @@ int main(int argc, char *argv[]) {
 	int cheapest_path = INT_MAX;
 	int index_of_cheapest_path = 0;
 
+	/* now lets determinate the routs values and select the best one */
 	for(int i = 0; i < n_paths_permutation; ++i) {
 		if(paths[i][0] != start_city) /* we only want paths that start in a particular city */
 			continue;
@@ -243,6 +243,11 @@ int main(int argc, char *argv[]) {
 			if(j!=0)
 				cost_sum += get_cost(distances,n_cities, paths[i][j-1], paths[i][j]);	
 		}
+
+		/* also consider the cost to return to the city where the sales man started*/
+		printf("%d", start_city);
+		cost_sum += get_cost(distances,n_cities, paths[i][n_cities-1], start_city);
+
 		printf(" - %d ", cost_sum);
 
 		if(cheapest_path > cost_sum) {
@@ -254,19 +259,22 @@ int main(int argc, char *argv[]) {
 		printf("\n");
 	}
 
+
 	printf("\n\n--------------------------------\n\nRESULTS\n\n");
 
 	printf("Selected city as start point is \"%s\" (id:%d)\n",city_names[start_city],start_city);
 	printf("Shortest rout is:\n");
 	for(int j = 0; j < n_cities; ++j) {
 		int city_index = paths[index_of_cheapest_path][j];
-		printf("%s-(%d)%s ", city_names[city_index],\
-							 (j+1!=n_cities? get_cost(distances,n_cities, paths[index_of_cheapest_path][j], paths[index_of_cheapest_path][j+1]):0),\
-							 (j<n_cities-1?"->":""));
+		printf("%s-(%d)-> ", city_names[city_index],\
+							 (j+1!=n_cities? get_cost(distances,n_cities, paths[index_of_cheapest_path][j], paths[index_of_cheapest_path][j+1]): get_cost(distances,n_cities, paths[index_of_cheapest_path][n_cities-1], start_city))
+							 );
 	}
+	printf("%s", city_names[start_city]);
+
 	printf("(costing a total of %d)\n", cheapest_path);
 	
-	free_city_paths_vector(paths, n_cities);
+	free_city_paths_vector(paths, n_cities); 
 	free(city_ids_for_permutation);
 	free(distances);
 	free(city_names);
